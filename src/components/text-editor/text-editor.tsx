@@ -5,18 +5,8 @@ import 'quill/dist/quill.snow.css';
 import './text-editor.css';
 import { Socket, io } from "socket.io-client";
 import { useParams } from "react-router-dom";
+import { QUILL_EVENTS, SAVE_INTERVAL_MS, SOCKET_EVENTS, TOOLBAR_OPTIONS } from "../../constants/constants";
 
-const SAVE_INTERVAL_MS = 2000;
-const TOOLBAR_OPTIONS = [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [] }],
-    ["bold", "italic", "underline"],
-    [{ color: [] }, { background: [] }],
-    [{ script: "sub" }, { script: "super" }],
-    [{ align: [] }],
-    ["image", "blockquote", "code-block"],
-    ["clean"],
-];
 
 const TextEditor: React.FC = () => {
     const [socket, setSocket] = useState<Socket>();
@@ -27,7 +17,7 @@ const TextEditor: React.FC = () => {
             transports: ['websocket'] 
         });
 
-        s.on('connect_error', (err) => {
+        s.on(SOCKET_EVENTS.CONNECTION_ERROR, (err) => {
             console.error('Connection Error:', err);
         });
 
@@ -43,31 +33,31 @@ const TextEditor: React.FC = () => {
         const handleTextChange = (delta: any,oldDelta: any,source: any) => {
             if (source !== 'user') return;
             console.log(oldDelta);
-            socket.emit("send-changes", delta);
+            socket.emit(SOCKET_EVENTS.SEND_CHANGES, delta);
         };
 
-        quill.on('text-change', handleTextChange);
+        quill.on(QUILL_EVENTS.TEXT_CHANGE, handleTextChange);
 
         const handleReceiveChanges = (delta: any) => {
             quill.updateContents(delta);
         };
 
-        socket.on('receive-changes', handleReceiveChanges);
+        socket.on(SOCKET_EVENTS.RECEIVE_CHANGES, handleReceiveChanges);
 
         return () => {
-            quill.off('text-change', handleTextChange);
-            socket.off('receive-changes', handleReceiveChanges);
+            quill.off(QUILL_EVENTS.TEXT_CHANGE, handleTextChange);
+            socket.off(SOCKET_EVENTS.RECEIVE_CHANGES, handleReceiveChanges);
         };
     }, [socket, quill]);
 
     useEffect(() => {
         
         if(!socket || !quill) return;
-        socket.once('load-document',document =>{
+        socket.once(SOCKET_EVENTS.LOAD_DOCUMENT,document =>{
             quill.setContents(document);
             quill.enable();
         })
-        socket.emit('get-document',documentId);
+        socket.emit(SOCKET_EVENTS.GET_DOCUMENT,documentId);
 
     },[socket,quill,documentId])
 
@@ -75,7 +65,7 @@ const TextEditor: React.FC = () => {
         if(!socket || !quill) return;
 
         const interval = setInterval(() => {
-            socket.emit('save-document',quill.getContents());
+            socket.emit(SOCKET_EVENTS.GET_DOCUMENT,quill.getContents());
         },SAVE_INTERVAL_MS)
 
         return () => {
