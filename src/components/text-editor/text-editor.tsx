@@ -13,7 +13,7 @@ const TextEditor: React.FC = () => {
     const [quill, setQuill] = useState<Quill>();
     const {id: documentId} = useParams();
     useEffect(() => {
-        const s = io('http://localhost:3001', {
+        const s = io('https://google-docs-backend-onpi.onrender.com', {
             transports: ['websocket'] 
         });
 
