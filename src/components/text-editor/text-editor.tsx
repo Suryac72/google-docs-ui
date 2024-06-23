@@ -65,7 +65,7 @@ const TextEditor: React.FC = () => {
         if(!socket || !quill) return;
 
         const interval = setInterval(() => {
-            socket.emit(SOCKET_EVENTS.GET_DOCUMENT,quill.getContents());
+            socket.emit(SOCKET_EVENTS.SAVE_DOCUMENT,quill.getContents());
         },SAVE_INTERVAL_MS)
 
         return () => {
